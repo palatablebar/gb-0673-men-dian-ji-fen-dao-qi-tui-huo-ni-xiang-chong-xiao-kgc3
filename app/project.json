@@ -9,6 +9,7 @@
     "积分归批",
     "消费到期",
     "退货回拨",
+    "兑换提醒占用",
     "余额对账",
     "期末归档"
   ],
@@ -28,6 +29,7 @@
     "lots",
     "consumption",
     "refund",
+    "reminder",
     "reconcile",
     "archive"
   ],
@@ -38,7 +40,7 @@
     "points": "积分",
     "at": "发生时刻 UTC",
     "expires": "到期时刻 UTC",
-    "ref": "原消费号",
+    "ref": "原消费号/提醒号",
     "rule": "权益规则",
     "version": "版本",
     "_line": "原始行",
@@ -58,6 +60,19 @@
     "refunded": "退款",
     "expired": "到期",
     "points_balanced": "积分守恒",
-    "allocations": "回拨批次"
+    "allocations": "回拨批次",
+    "requested": "意向积分",
+    "hold": "提醒占用",
+    "remind_expires": "提醒到期",
+    "created_at": "生成时刻",
+    "release_code": "释放原因",
+    "publish": "发布状态",
+    "free_balance": "可自由支配",
+    "available_now": "当前可用",
+    "status": "占用状态",
+    "squeezed": "曾被压缩",
+    "retries": "重试次数",
+    "action": "流水动作",
+    "code": "原因码"
   }
 }

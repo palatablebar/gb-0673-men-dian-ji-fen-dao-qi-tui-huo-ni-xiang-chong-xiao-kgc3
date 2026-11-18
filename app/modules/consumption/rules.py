@@ -11,8 +11,9 @@ def replay(rows,lots,as_of):
             if instant(lot['expires'])<=at and lot['remaining']:
                 amount=lot['remaining'];lot['remaining']=0;expired+=amount
                 ledger.append({'id':lot['id'],'member':lot['member'],'action':'EXPIRE','points':amount,'at':at.isoformat()})
-    for row in sorted(rows,key=lambda r:(instant(r['at']),priority[r['type']],r['id'])):
+    for row in sorted(rows,key=lambda r:(instant(r['at']),priority.get(r['type'],9),r['id'])):
         at=instant(row['at']);expire(at);member=row['member'];amount=row['points']
+        if row['type'] not in {'EARN','SPEND','REFUND'}:continue
         if row['type']=='EARN':
             live[row['id']]['remaining']=amount;ledger.append({'id':row['id'],'member':member,'action':'EARN','points':amount,'at':row['at']});continue
         if row['type']=='SPEND':

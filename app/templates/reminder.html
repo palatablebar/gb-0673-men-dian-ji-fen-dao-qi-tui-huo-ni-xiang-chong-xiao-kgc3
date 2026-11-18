@@ -1,0 +1,27 @@
+{% extends 'base.html' %}{% block content %}
+<section class="panel primary-panel">
+  <div class="panel__head"><h2>兑换提醒占用台账</h2><span>{{ view.rows|length }} 条提醒 · 对账 {{ view.metrics['对账状态'] }}</span></div>
+  <div class="kpis">
+    <div class="kpi">提醒占用<strong>{{ view.metrics['提醒占用'] }}</strong></div>
+    <div class="kpi">活跃提醒<strong>{{ view.metrics['活跃提醒'] }}</strong></div>
+    <div class="kpi">仅快照<strong>{{ view.metrics['快照提醒'] }}</strong></div>
+    <div class="kpi">已释放<strong>{{ view.metrics['已释放'] }}</strong></div>
+  </div>
+  <div class="column-letters"><span>A</span><span>B</span><span>C</span><span>D</span><span>E</span><span>F</span><span>G</span><span>H</span><span>I</span><span>J</span><span>K</span><span>L</span></div>
+  {{ cells(view.rows) }}
+</section>
+<div class="grid">
+  <section class="panel">
+    <div class="panel__head"><h2>会员口径</h2><span>可用余额 / 提醒后可自由支配</span></div>
+    <div class="balance-grid">
+      {% for row in view.rows|groupby('member') %}
+      <div class="member-cell"><small>{{ row.grouper }}</small><b>可用 {{ row.list[0].available_now }}</b><em>占用 {{ row.list|sum(attribute='hold') }} · 自由 {{ row.list[0].available_now - row.list|sum(attribute='hold') }}</em></div>
+      {% endfor %}
+    </div>
+  </section>
+  <section class="panel">
+    <div class="panel__head"><h2>占用 / 释放流水</h2><span>{{ state.hold_ledger|length }} 笔</span></div>
+    {{ cells(state.hold_ledger) }}
+  </section>
+</div>
+{% endblock %}

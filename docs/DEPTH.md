@@ -11,8 +11,23 @@
 | M3 积分归批 | 执行并复核积分归批 | `POST /api/lots` | `app/modules/lots/rules.py` | `tests/test_lots.py` |
 | M4 消费到期 | 执行并复核消费到期 | `POST /api/consumption` | `app/modules/consumption/rules.py` | `tests/test_consumption.py` |
 | M5 退货回拨 | 执行并复核退货回拨 | `POST /api/refund` | `app/modules/refund/rules.py` | `tests/test_refund.py` |
-| M6 余额对账 | 执行并复核余额对账 | `POST /api/reconcile` | `app/modules/reconcile/rules.py` | `tests/test_reconcile.py` |
-| M7 期末归档 | 执行并复核期末归档 | `POST /api/archive` | `app/modules/archive/rules.py` | `tests/test_archive.py` |
+| M6 兑换提醒占用 | 执行并复核提醒占用与发布裁决 | `POST /api/reminder` | `app/modules/reminder/rules.py` | `tests/test_reminder.py` |
+| M7 余额对账 | 执行并复核余额对账 | `POST /api/reconcile` | `app/modules/reconcile/rules.py` | `tests/test_reconcile.py` |
+| M8 期末归档 | 执行并复核期末归档 | `POST /api/archive` | `app/modules/archive/rules.py` | `tests/test_archive.py` |
+
+## 提醒占用陷阱登记
+
+| TRAP | 现象 | 朴素实现 | 本项目处理 | 处理位置 | 测试 |
+|---|---|---|---|---|---|
+| HOLD-01 | 意向被记成已用积分 | 直接扣批次余额 | 独立意向台账，不写批次账，财务数字不变 | `app/modules/reminder/rules.py` | `tests/test_reminder.py::test_full_hold_publishable` |
+| HOLD-02 | 提醒挡死普通消费 | SPEND 前校验占用 | 消费先落账后压缩占用，消费永不因提醒失败 | `app/modules/reminder/rules.py` | `tests/test_reminder.py::test_spend_does_not_block_when_hold_covers_balance` |
+| HOLD-03 | 余额不足仍发可兑现提醒 | 按意向额硬占 | 只保留参考快照，占用按可用封顶，禁发布 | `app/modules/reminder/rules.py` | `tests/test_reminder.py::test_insufficient_is_snapshot_only` |
+| HOLD-04 | 重试重复占用 | 每次生成新占用 | 同提醒号同版本幂等，仅记 RETRY 流水 | `app/modules/reminder/rules.py` | `tests/test_reminder.py::test_retry_idempotent_no_new_hold` |
+| HOLD-05 | 失败生成污染旧占用 | 失败也覆盖状态 | 失败事件只隔离，旧占用保持不变 | `app/modules/reminder/rules.py` | `tests/test_reminder.py::test_failed_generation_keeps_previous_hold` |
+| HOLD-06 | 退货后份额不回补 | 占用一次定死 | 退款恢复后按确定性顺序回补 | `app/modules/reminder/rules.py` | `tests/test_reminder.py::test_refund_after_squeeze_refills_in_deterministic_order` |
+| HOLD-07 | 撤下/到期不释放 | 占用悬挂 | 撤下与到期均释放并附原因码 | `app/modules/reminder/rules.py` | `tests/test_reminder.py::test_cancel_releases` / `test_expiry_releases` |
+| HOLD-08 | 过期积分被占用 | 只看总额不看过期 | 占用只落在未过期可用上，批次到期即压缩 | `app/modules/reminder/rules.py` | `tests/test_reminder.py::test_expired_lot_points_cannot_be_held` |
+| HOLD-09 | 占用对账不一致仍发布 | 无守恒闸门 | 单条与会员级双重守恒，不一致拦截发布与归档 | `app/modules/reminder/rules.py`、`app/modules/archive/rules.py` | `tests/test_reminder.py::test_reconcile_blocks_publish`、`tests/test_archive.py::test_reminder_mismatch_blocks` |
 
 ## 陷阱登记
 
@@ -36,4 +51,4 @@
 
 ## 已知不覆盖
 
-数据来自仓内样例或用户粘贴文件，不连接外部业务生产系统。平台不执行实际资金划转或行政审批。
+数据来自仓内样例或用户粘贴文件，不连接外部业务生产系统。平台不执行实际资金划转或行政审批。兑换提醒模块只产出占用台账与发布裁决，不展开营销触达（短信/推送/站内信）、优惠券或其他权益活动。
